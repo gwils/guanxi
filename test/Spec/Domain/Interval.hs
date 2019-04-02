@@ -9,8 +9,10 @@ module Spec.Domain.Interval where
 
 import Control.Applicative
 import Data.Foldable (traverse_)
+import Data.Ratio
 import Domain.Internal
 import FD.Monad
+import Ref
 import Relative.Base (plus)
 import Test.Hspec
 
@@ -282,3 +284,61 @@ spec = do
             traverse concrete [b,c,f,m,s]
 
         result `shouldBe` [[3,2,4,5,1]]
+
+    -- Art of the Propagator section 3
+    describe "A barometer, a stopwatch, and a ruler" $ do
+      it "finds a solution" $ do
+        let
+          result = run $ do
+            let
+              fallDuration t h = do
+                g <- pure (abstract 10)
+                let half = abstract 5
+                t2 <- bottom
+                gt2 <- bottom
+                square t t2
+                mult g t2 gt2
+                mult half gt2 h
+
+            buildingHeight <- bottom
+
+            -- drop the barometer off the building and time the fall
+            fallTime <- pure (abstract 3)
+            fallDuration fallTime buildingHeight
+
+            concrete buildingHeight
+        result `shouldBe` [5]
+
+-- -- Fixed point numbers with three decimal places of precision
+-- -- Put differently, thousandths
+-- newtype Fixed3 = Fixed3 Integer
+--   deriving (Eq, Ord, Enum)
+
+-- instance Num Fixed3 where
+--   fromInteger i = Fixed3 (i*100)
+--   Fixed3 i + Fixed3 j = Fixed3 (i + j)
+--   Fixed3 i * Fixed3 j = Fixed3 (i*j `div` 1000)
+--   Fixed3 i - Fixed3 j = Fixed3 (i - j)
+--   negate (Fixed3 i) = Fixed3 (negate i)
+--   abs (Fixed3 i) = Fixed3 (abs i)
+--   signum (Fixed3 i) = Fixed3 (signum i)
+
+-- instance Real Fixed3 where
+--   toRational (Fixed3 i) = i % 1000
+
+-- instance Integral Fixed3 where
+--   toInteger (Fixed3 i) = i `div` 1000
+--   div (Fixed3 i) (Fixed3 j) = Fixed3 $ i*1000 `div` j
+--   quotRem = undefined
+
+mult :: MonadRef m => Interval m -> Interval m -> Interval m -> m ()
+mult i j o = do
+  onLo i $ \x -> onLo j $ \y -> o `gez` (x*y `div` 1)
+  onLo j $ \y -> onLo i $ \x -> o `gez` (x*y `div` 1)
+  onHi i $ \x -> onHi j $ \y -> o `lez` (x*y `div` 1)
+  onHi j $ \y -> onHi i $ \x -> o `lez` (x*y `div` 1)
+
+square :: MonadRef m => Interval m -> Interval m -> m ()
+square i o = do
+  onLo i $ \x -> o `gez` (x*x `div` 1)
+  onHi i $ \x -> o `lez` (x*x `div` 1)
