@@ -11,7 +11,7 @@ import Control.Applicative
 import Data.Foldable (traverse_)
 import Domain.Internal
 import FD.Monad
-import Relative.Base (plus)
+import Relative.Base
 import Test.Hspec
 
 spec :: Spec
@@ -53,6 +53,53 @@ spec = do
             r `ltz` (-4)
             known input
         result `shouldBe` [Just 5]
+      it "x = -x overlapping" $ do
+        let
+          result = run $ do
+            input <- (-3)...4
+            negd <- bottom
+            negatei input negd
+            eq input negd
+            (,) <$> concrete input <*> concrete negd
+        result `shouldBe` [(0,0)]
+      it "x = -x non-overlaping" $ do
+        let
+          result = run $ do
+            input <- 2...5
+            negd <- bottom
+            negatei input negd
+            eq input negd
+            (,) <$> concrete input <*> concrete negd
+        result `shouldBe` []
+      it "x = -x+5 (odd case) (no integer solution)" $ do
+        let
+          result = run $ do
+            input <- 2...5 --solution is 2.5
+            negd <- bottom
+            negatei input negd
+            let added = negd `plus` 5
+            eq input added
+            (,) <$> concrete input <*> concrete added
+        result `shouldBe` []
+      it "x = -x+4 (even case) with solution" $ do
+        let
+          result = run $ do
+            input <- 1...5 --solution is 2
+            negd <- bottom
+            negatei input negd
+            let added = negd `plus` 4
+            eq input added
+            (,) <$> concrete input <*> concrete added
+        result `shouldBe` [(2,2)]
+      it "x = -x+4 (even case) without solution" $ do
+        let
+          result = run $ do
+            input <- 3...5 --solution is 2
+            negd <- bottom
+            negatei input negd
+            let added = negd `plus` 4
+            (,) <$> concrete input <*> concrete added
+        result `shouldBe` []
 
     describe "absi" $ do
       it "passes through a positive number unchanged" $ do
