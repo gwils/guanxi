@@ -38,6 +38,7 @@ import Unaligned.Internal (View(..), Rev(..))
 --------------------------------------------------------------------------------
 
 data Unit = One | NegativeOne
+  deriving Eq
 
 instance Semigroup Unit where
   One <> x = x

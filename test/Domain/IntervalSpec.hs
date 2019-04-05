@@ -91,6 +91,16 @@ spec = do
             eq input added
             (,) <$> concrete input <*> concrete added
         result `shouldBe` [(2,2)]
+      it "-x+4 = x (even case) with solution" $ do
+        let
+          result = run $ do
+            input <- 1...5 --solution is 2
+            negd <- bottom
+            negatei input negd
+            let added = negd `plus` 4
+            eq added input
+            (,) <$> concrete input <*> concrete added
+        result `shouldBe` [(2,2)]
       it "x = -x+4 (even case) without solution" $ do
         let
           result = run $ do
@@ -98,8 +108,17 @@ spec = do
             negd <- bottom
             negatei input negd
             let added = negd `plus` 4
+            eq input added
             (,) <$> concrete input <*> concrete added
         result `shouldBe` []
+      it "x+2 = x+2" $ do
+        let
+          result = run $ do
+            input <- 0...5
+            let added = input `plus` 4
+            eq added added
+            concrete added
+        result `shouldBe` [0,1,2,3,4,5]
 
     describe "absi" $ do
       it "passes through a positive number unchanged" $ do
@@ -163,6 +182,20 @@ spec = do
       --       x `gt` y
       --       knowns x y
       --   result `shouldBe` [(Just 2,Just 1)]
+      it "x = x+4" $ do
+        let
+          result = run $ do
+            x <- 1...5
+            x `eq` (x `plus` 4)
+            concrete x
+        result `shouldBe` []
+      it "x+4 = x" $ do
+        let
+          result = run $ do
+            x <- 1...5
+            (x `plus` 4) `eq` x
+            concrete x
+        result `shouldBe` []
       it "[1] le [1..2]" $ do
         let
           result = run $ do
