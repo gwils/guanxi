@@ -294,13 +294,21 @@ eqRef x d y = do
         zhip = no u yhip ylop
         (todo,  xlo') = maxx zlop xlop t (no u ylo yhi) xlo
         (todo', xhi') = minx zhip xhip t (no u yhi ylo) xhi
-        result = mkR 1 (Right solution) (Right solution) nil nil nil
-    guard $ u == NegativeOne
-    guard $ even k
-    guard $ inside xlo' xhi' solution
-    writeRef xroot $ Root result
-    runPs (todo <> todo') xroot
-    runKs (rel t ycov <> xcov) solution
+    if u == NegativeOne then do
+      guard $ even k && inside xlo' xhi' solution
+      let result = mkR 1 (Right solution) (Right solution) nil nil nil
+      writeRef xroot $ Root result
+      runPs (todo <> todo') xroot
+      runKs (rel t ycov <> xcov) solution
+    else do
+      guard $ o <> t == mempty
+      let result = mkR xrank xlo' xhi' (xlop <> rel t zlop)
+            (xhip <> rel t zhip) (xcov <> rel t ycov)
+      writeRef xroot $ Root result
+      runPs (todo <> todo') xroot
+      case covered result of
+        Just z -> runKs (rel t ycov <> xcov) z
+        Nothing -> pure ()
   else if xrank < yrank then do
     writeRef xroot $ Child t yroot
     let zlop = no u xlop xhip

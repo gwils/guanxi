@@ -52,6 +52,7 @@ instance Group Unit where
   inv = id
 
 data Aff = Aff !Unit !Integer
+  deriving Eq
 
 -- group action 
 utimes :: Unit -> Integer -> Integer

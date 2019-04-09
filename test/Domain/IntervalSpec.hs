@@ -111,14 +111,6 @@ spec = do
             eq input added
             (,) <$> concrete input <*> concrete added
         result `shouldBe` []
-      it "x+2 = x+2" $ do
-        let
-          result = run $ do
-            input <- 0...5
-            let added = input `plus` 4
-            eq added added
-            concrete added
-        result `shouldBe` [0,1,2,3,4,5]
 
     describe "absi" $ do
       it "passes through a positive number unchanged" $ do
@@ -196,6 +188,14 @@ spec = do
             (x `plus` 4) `eq` x
             concrete x
         result `shouldBe` []
+      it "x+3 = x+3" $ do
+        let
+          result = run $ do
+            input <- 0...5
+            let added = input `plus` 3
+            eq added added
+            concrete added
+        result `shouldBe` [3,4,5,6,7,8]
       it "[1] le [1..2]" $ do
         let
           result = run $ do
