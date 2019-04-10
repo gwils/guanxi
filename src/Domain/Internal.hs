@@ -301,7 +301,7 @@ eqRef x d y = do
       runPs (todo <> todo') xroot
       runKs (rel t ycov <> xcov) solution
     else do
-      guard $ o <> t == mempty
+      guard $ t == mempty
       let result = mkR xrank xlo' xhi' (xlop <> rel t zlop)
             (xhip <> rel t zhip) (xcov <> rel t ycov)
       writeRef xroot $ Root result
