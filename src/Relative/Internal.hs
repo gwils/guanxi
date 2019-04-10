@@ -38,7 +38,6 @@ import Unaligned.Internal (View(..), Rev(..))
 --------------------------------------------------------------------------------
 
 data Unit = One | NegativeOne
-  deriving Eq
 
 instance Semigroup Unit where
   One <> x = x
@@ -52,7 +51,6 @@ instance Group Unit where
   inv = id
 
 data Aff = Aff !Unit !Integer
-  deriving Eq
 
 -- group action 
 utimes :: Unit -> Integer -> Integer

@@ -289,26 +289,29 @@ eqRef x d y = do
   let t@(Aff u k) = inv xd <> d <> yd
       o = inv t
   if xroot == yroot then do
-    let solution = k `div` 2
-        zlop = no u ylop yhip
+    let zlop = no u ylop yhip
         zhip = no u yhip ylop
         (todo,  xlo') = maxx zlop xlop t (no u ylo yhi) xlo
         (todo', xhi') = minx zhip xhip t (no u yhi ylo) xhi
-    if u == NegativeOne then do
-      guard $ even k && inside xlo' xhi' solution
-      let result = mkR 1 (Right solution) (Right solution) nil nil nil
-      writeRef xroot $ Root result
-      runPs (todo <> todo') xroot
-      runKs (rel t ycov <> xcov) solution
-    else do
-      guard $ t == mempty
-      let result = mkR xrank xlo' xhi' (xlop <> rel t zlop)
-            (xhip <> rel t zhip) (xcov <> rel t ycov)
-      writeRef xroot $ Root result
-      runPs (todo <> todo') xroot
-      case covered result of
-        Just z -> runKs (rel t ycov <> xcov) z
-        Nothing -> pure ()
+    case u of
+      -- eg. x = -x+4 --> x must be 2
+      NegativeOne -> do
+        let solution = k `div` 2
+            result = mkR (yrank+1) (Right solution) (Right solution) nil nil nil
+        guard $ even k && inside xlo' xhi' solution
+        writeRef xroot $ Root result
+        runPs (todo <> todo') xroot
+        runKs (rel t ycov <> xcov) solution
+      -- x = x+c --> c must be zero
+      One -> do
+        guard $ k == 0
+        let result = mkR xrank xlo' xhi' (xlop <> rel t zlop)
+              (xhip <> rel t zhip) (xcov <> rel t ycov)
+        writeRef xroot $ Root result
+        runPs (todo <> todo') xroot
+        case covered result of
+          Just z -> runKs (rel t ycov <> xcov) z
+          Nothing -> pure ()
   else if xrank < yrank then do
     writeRef xroot $ Child t yroot
     let zlop = no u xlop xhip
